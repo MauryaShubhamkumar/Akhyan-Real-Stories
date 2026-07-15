@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "Lora", serif;
+
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+}
+
+:root {
+  --paper: #ffffff;
+  --surface: #f7f7f8;
+  --ink: #0d0d0d;
+  --muted: #5d5d5d;
+  --border: #dedede;
+  --accent: #0d9373;
+
+  color-scheme: light;
+}
+
+.dark {
+  --paper: #212121;
+  --surface: #2f2f2f;
+  --ink: #ececec;
+  --muted: #b4b4b4;
+  --border: #444444;
+  --accent: #10a37f;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+
+  background: var(--paper);
+  color: var(--ink);
+
+  font-family: var(--font-sans);
+
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  color: var(--ink);
+}
+
+::selection {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #ffffff;
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease,
+    opacity 150ms ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+}
