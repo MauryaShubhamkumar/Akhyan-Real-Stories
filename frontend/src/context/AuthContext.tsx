@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { api } from "../api/client";
+import { login as apiLogin, signup as apiSignup, logout as apiLogout, me as apiMe } from "../features/auth/api";
 import type { User } from "../types";
 
 interface AuthContextValue {
@@ -42,9 +42,9 @@ export function AuthProvider({
   useEffect(() => {
     const getCurrentUser = async () => {
       try {
-        const response = await api.get("/auth/me");
+        const data = await apiMe();
 
-        setUser(response.data.user);
+        setUser(data.user);
       } catch {
         setUser(null);
       } finally {
@@ -59,12 +59,12 @@ export function AuthProvider({
     email: string,
     password: string
   ): Promise<void> => {
-    const response = await api.post("/auth/login", {
+    const data = await apiLogin({
       email,
       password,
     });
 
-    setUser(response.data.user);
+    setUser(data.user);
   };
 
   const signup = async (
@@ -72,17 +72,17 @@ export function AuthProvider({
     email: string,
     password: string
   ): Promise<void> => {
-    const response = await api.post("/auth/signup", {
+    const data = await apiSignup({
       username,
       email,
       password,
     });
 
-    setUser(response.data.user);
+    setUser(data.user);
   };
 
   const logout = async (): Promise<void> => {
-    await api.post("/auth/logout");
+    await apiLogout();
 
     setUser(null);
   };

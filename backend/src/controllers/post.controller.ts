@@ -5,12 +5,15 @@ import mongoose from "mongoose";
 import { PostModel } from "../models/Post.js";
 import {
   createPostSchema,
-  postQuerySchema,
+  getPostsQuerySchema,
 } from "../schemas/post.schema.js";
 import { ReactionModel } from "../models/Reaction.js";
 import { CommentModel } from "../models/Comment.js";
 import { ReportModel } from "../models/Report.js";
 import { PostViewModel } from "../models/PostView.js";
+import { calculateReadingTime } from "../utils/readingTime.js";
+import { buildPostFilter } from "../services/post.service.js";
+import { getSort, trendingScore } from "../utils/postSort.js";
 
 const PAGE_LIMIT = 10;
 
@@ -60,7 +63,7 @@ export const getPosts = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const result = postQuerySchema.safeParse(req.query);
+  const result = getPostsQuerySchema.safeParse(req.query);
 
   if (!result.success) {
     res.status(400).json({
@@ -71,162 +74,202 @@ export const getPosts = async (
     return;
   }
 
-  const { page, category } = result.data;
+  const { page, limit, category, q, sort } = result.data;
 
-  const matchStage = category
-    ? { category }
-    : {};
+  const filter = buildPostFilter({
+    page,
+    limit,
+    category,
+    q,
+  });
 
   try {
-    const [posts, totalPosts] = await Promise.all([
-      PostModel.aggregate([
+    const pipeline: any[] = [
+      {
+        $match: filter,
+      },
+    ];
+
+    if (sort !== "trending") {
+      pipeline.push(
         {
-          $match: matchStage,
+          $sort: getSort(sort) as any,
         },
         {
-          $sort: {
-            createdAt: -1,
+          $skip: (page - 1) * limit,
+        },
+        {
+          $limit: limit,
+        }
+      );
+    } else {
+      pipeline.push({
+        $sort: { createdAt: -1 },
+      });
+    }
+
+    pipeline.push(
+      {
+        $lookup: {
+          from: "users",
+          localField: "authorId",
+          foreignField: "_id",
+          as: "author",
+        },
+      },
+      {
+        $lookup: {
+          from: "postviews",
+          localField: "_id",
+          foreignField: "postId",
+          as: "views",
+        },
+      },
+      {
+        $lookup: {
+          from: "reactions",
+          let: {
+            postId: "$_id",
           },
-        },
-        {
-          $skip: (page - 1) * PAGE_LIMIT,
-        },
-        {
-          $limit: PAGE_LIMIT,
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "authorId",
-            foreignField: "_id",
-            as: "author",
-          },
-        },
-        {
-          $lookup: {
-            from: "reactions",
-            let: {
-              postId: "$_id",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: [
-                      "$postId",
-                      "$$postId",
-                    ],
-                  },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: [
+                    "$postId",
+                    "$$postId",
+                  ],
                 },
               },
+            },
+            {
+              $group: {
+                _id: "$type",
+                count: {
+                  $sum: 1,
+                },
+              },
+            },
+          ],
+          as: "reactionCounts",
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          body: 1,
+          category: 1,
+          isAnonymous: 1,
+          createdAt: 1,
+          likeCount: 1,
+          dislikeCount: 1,
+          commentCount: 1,
+          views: {
+            $size: "$views",
+          },
+
+          author: {
+            $cond: [
+              "$isAnonymous",
+              null,
               {
-                $group: {
-                  _id: "$type",
-                  count: {
-                    $sum: 1,
-                  },
+                id: {
+                  $arrayElemAt: [
+                    "$author._id",
+                    0,
+                  ],
+                },
+                username: {
+                  $arrayElemAt: [
+                    "$author.username",
+                    0,
+                  ],
                 },
               },
             ],
-            as: "reactionCounts",
           },
-        },
-        {
-          $project: {
-            title: 1,
-            body: 1,
-            category: 1,
-            isAnonymous: 1,
-            createdAt: 1,
 
-            author: {
-              $cond: [
-                "$isAnonymous",
-                null,
+          counts: {
+            likes: {
+              $ifNull: [
                 {
-                  id: {
-                    $arrayElemAt: [
-                      "$author._id",
-                      0,
-                    ],
-                  },
-                  username: {
-                    $arrayElemAt: [
-                      "$author.username",
-                      0,
-                    ],
+                  $let: {
+                    vars: {
+                      likeData: {
+                        $arrayElemAt: [
+                          {
+                            $filter: {
+                              input: "$reactionCounts",
+                              as: "reaction",
+                              cond: {
+                                $eq: [
+                                  "$$reaction._id",
+                                  "like",
+                                ],
+                              },
+                            },
+                          },
+                          0,
+                        ],
+                      },
+                    },
+                    in: "$$likeData.count",
                   },
                 },
+                0,
               ],
             },
 
-            counts: {
-              likes: {
-                $ifNull: [
-                  {
-                    $let: {
-                      vars: {
-                        likeData: {
-                          $arrayElemAt: [
-                            {
-                              $filter: {
-                                input: "$reactionCounts",
-                                as: "reaction",
-                                cond: {
-                                  $eq: [
-                                    "$$reaction._id",
-                                    "like",
-                                  ],
-                                },
+            dislikes: {
+              $ifNull: [
+                {
+                  $let: {
+                    vars: {
+                      dislikeData: {
+                        $arrayElemAt: [
+                          {
+                            $filter: {
+                              input: "$reactionCounts",
+                              as: "reaction",
+                              cond: {
+                                $eq: [
+                                  "$$reaction._id",
+                                  "dislike",
+                                ],
                               },
                             },
-                            0,
-                          ],
-                        },
+                          },
+                          0,
+                        ],
                       },
-                      in: "$$likeData.count",
                     },
+                    in: "$$dislikeData.count",
                   },
-                  0,
-                ],
-              },
-
-              dislikes: {
-                $ifNull: [
-                  {
-                    $let: {
-                      vars: {
-                        dislikeData: {
-                          $arrayElemAt: [
-                            {
-                              $filter: {
-                                input: "$reactionCounts",
-                                as: "reaction",
-                                cond: {
-                                  $eq: [
-                                    "$$reaction._id",
-                                    "dislike",
-                                  ],
-                                },
-                              },
-                            },
-                            0,
-                          ],
-                        },
-                      },
-                      in: "$$dislikeData.count",
-                    },
-                  },
-                  0,
-                ],
-              },
+                },
+                0,
+              ],
             },
           },
         },
-      ]),
+      }
+    );
 
-      PostModel.countDocuments(matchStage),
+    let [posts, totalPosts] = await Promise.all([
+      PostModel.aggregate(pipeline),
+      PostModel.countDocuments(filter),
     ]);
+
+    if (sort === "trending") {
+      posts = posts
+        .map((post) => ({
+          ...post,
+          score: trendingScore(post),
+        }))
+        .sort((a, b) => b.score - a.score);
+
+      // Paginate in memory
+      posts = posts.slice((page - 1) * limit, page * limit);
+    }
 
     res.status(200).json({
       success: true,
@@ -234,14 +277,15 @@ export const getPosts = async (
         id: post._id,
         ...post,
         _id: undefined,
+        readingTime: calculateReadingTime(post.body),
       })),
 
       pagination: {
         page,
-        limit: PAGE_LIMIT,
+        limit,
         totalPosts,
         totalPages: Math.ceil(
-          totalPosts / PAGE_LIMIT
+          totalPosts / limit
         ),
       },
     });
@@ -356,6 +400,7 @@ export const getPostById = async (
           dislikes,
         },
         views,
+        readingTime: calculateReadingTime(post.body),
 
         createdAt: post.createdAt,
       },

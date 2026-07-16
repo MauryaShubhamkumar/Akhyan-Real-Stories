@@ -4,6 +4,12 @@ import mongoose from "mongoose";
 import { PostModel } from "../models/Post.js";
 import { ReactionModel } from "../models/Reaction.js";
 import { reactionSchema } from "../schemas/reaction.schema.js";
+import {
+  incrementLike,
+  decrementLike,
+  incrementDislike,
+  decrementDislike,
+} from "../services/postCounter.service.js";
 
 export const reactToPost = async (
   req: Request,
@@ -47,6 +53,13 @@ export const reactToPost = async (
       return;
     }
 
+    const existingReaction = await ReactionModel.findOne({
+      postId,
+      userId: req.userId,
+    }).lean();
+
+    const prevType = existingReaction?.type ?? "none";
+
     if (type === "none") {
       await ReactionModel.deleteOne({
         postId,
@@ -63,10 +76,23 @@ export const reactToPost = async (
         },
         {
           upsert: true,
-          returnDocument: "after",
           runValidators: true,
         }
       );
+    }
+
+    if (prevType !== type) {
+      if (prevType === "like") {
+        await decrementLike(postId);
+      } else if (prevType === "dislike") {
+        await decrementDislike(postId);
+      }
+
+      if (type === "like") {
+        await incrementLike(postId);
+      } else if (type === "dislike") {
+        await incrementDislike(postId);
+      }
     }
 
     const [likes, dislikes] = await Promise.all([

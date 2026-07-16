@@ -18,11 +18,12 @@ import {
   ThumbsUp,
 } from "lucide-react";
 
-import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
 import { categoryLabels } from "../constants/categories";
-import ShareMenu from "../components/ShareMenu";
+import ShareMenu from "../components/shared/ShareMenu";
+import { getPost, getPostReaction, reactToPost, reportContent } from "../features/posts/api";
+import { getComments, createComment } from "../features/comments/api";
 
 import type {
   Comment,
@@ -62,23 +63,21 @@ export default function PostPage() {
 
       try {
         const requests = [
-          api.get(`/posts/${id}`),
-          api.get(`/posts/${id}/comments`),
+          getPost(id),
+          getComments(id),
         ];
 
-        const [postResponse, commentsResponse] =
+        const [postData, commentsData] =
           await Promise.all(requests);
 
-        setPost(postResponse.data.post);
-        setComments(commentsResponse.data.comments);
+        setPost(postData.post);
+        setComments(commentsData.comments);
 
         if (user) {
-          const reactionResponse = await api.get(
-            `/posts/${id}/reaction`
-          );
+          const reactionData = await getPostReaction(id);
 
           setReaction(
-            reactionResponse.data.reaction
+            reactionData.reaction
           );
         }
       } catch (error) {
@@ -116,18 +115,16 @@ export default function PostPage() {
         : selectedReaction;
 
     try {
-      const response = await api.post(
-        `/posts/${id}/react`,
-        {
-          type: nextReaction ?? "none",
-        }
+      const data = await reactToPost(
+        id,
+        nextReaction ?? "none"
       );
 
       setReaction(nextReaction);
 
       setPost({
         ...post,
-        counts: response.data.counts,
+        counts: data.counts,
       });
     } catch {
       setError("Unable to update reaction");
@@ -151,15 +148,13 @@ export default function PostPage() {
     setSubmittingComment(true);
 
     try {
-      const response = await api.post(
-        `/posts/${id}/comments`,
-        {
-          body: commentBody,
-        }
+      const data = await createComment(
+        id,
+        commentBody
       );
 
       setComments((current) => [
-        response.data.comment,
+        data.comment,
         ...current,
       ]);
 
@@ -191,7 +186,7 @@ export default function PostPage() {
     }
 
     try {
-      await api.post("/reports", {
+      await reportContent({
         targetType: "post",
         targetId: id,
         reason,
@@ -225,7 +220,7 @@ export default function PostPage() {
     }
 
     try {
-      await api.post("/reports", {
+      await reportContent({
         targetType: "comment",
         targetId: commentId,
         reason,

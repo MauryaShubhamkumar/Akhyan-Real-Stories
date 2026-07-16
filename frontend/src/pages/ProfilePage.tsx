@@ -13,13 +13,21 @@ import {
   MapPin,
   Pencil,
   Trash2,
+  PenLine,
+  Heart,
+  MessageSquare,
 } from "lucide-react";
 
 import axios from "axios";
 
-import { api } from "../api/client";
-
-import EditProfileModal from "../components/EditProfileModal";
+import EditProfileModal from "../components/profile/EditProfileModal";
+import { Button, H1, H2 } from "../components/ui";
+import { getProfile } from "../features/profile/api";
+import { deletePost } from "../features/posts/api";
+import { useDashboard } from "../features/dashboard/hooks";
+import DashboardStatCard from "../components/dashboard/StatCard";
+import CategoryChart from "../components/dashboard/CategoryChart";
+import TopStoryCard from "../components/dashboard/TopStoryCard";
 
 import {
   categoryLabels,
@@ -39,12 +47,14 @@ export default function ProfilePage() {
 
   const [editing, setEditing] = useState(false);
 
-  useEffect(() => {
-    const getProfile = async () => {
-      try {
-        const response = await api.get("/profile");
+  const { data: dashboard, isLoading: dashboardLoading, error: dashboardError } = useDashboard();
 
-        setData(response.data);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profileData = await getProfile();
+
+        setData(profileData);
       } catch (error) {
         if (axios.isAxiosError(error)) {
           setError(
@@ -57,7 +67,7 @@ export default function ProfilePage() {
       }
     };
 
-    void getProfile();
+    void fetchProfile();
   }, []);
 
   const handleDelete = async (
@@ -72,7 +82,7 @@ export default function ProfilePage() {
     }
 
     try {
-      await api.delete(`/posts/${postId}`);
+      await deletePost(postId);
 
       setData({
         ...data,
@@ -135,9 +145,9 @@ export default function ProfilePage() {
                 .toUpperCase()}
             </div>
 
-            <h1 className="mt-5 font-serif text-4xl font-semibold">
+            <H1 className="mt-5">
               {profile.username}
-            </h1>
+            </H1>
 
             {profile.bio && (
               <p className="mt-3 max-w-xl leading-7 text-muted">
@@ -146,19 +156,20 @@ export default function ProfilePage() {
             )}
           </div>
 
-          <button
+          <Button
             onClick={() => setEditing(true)}
-            className="btn-secondary flex items-center gap-2 rounded-full px-4 py-2 text-sm"
+            variant="secondary"
+            size="sm"
+            leftIcon={<Pencil size={16} />}
           >
-            <Pencil size={16} />
             Edit profile
-          </button>
+          </Button>
         </section>
 
         <section className="mt-12 border-t border-border pt-8">
-          <h2 className="font-serif text-xl font-semibold">
+          <H2 className="text-xl">
             Credentials & Highlights
-          </h2>
+          </H2>
 
           <div className="mt-6 space-y-4">
             {profile.employment && (
@@ -199,42 +210,69 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        <section className="mt-12 border-t border-border pt-8">
-          <h2 className="font-serif text-2xl font-semibold">
-            Story Dashboard
-          </h2>
-
-          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3">
-            <StatCard
-              label="Total Stories"
-              value={stats.totalPosts}
-            />
-
-            <StatCard
-              label="Content Views"
-              value={stats.totalViews}
-            />
-
-            {(
-              Object.keys(
-                stats.categories
-              ) as Category[]
-            ).map((category) => (
-              <StatCard
-                key={category}
-                label={categoryLabels[category]}
-                value={
-                  stats.categories[category]
-                }
-              />
-            ))}
+        <section className="mt-12 border-t border-border pt-8 space-y-8 animate-fade-in">
+          <div>
+            <H2>Creator Dashboard</H2>
           </div>
+
+          {dashboardLoading ? (
+            <div className="py-8 text-center text-muted text-sm">
+              Loading analytics...
+            </div>
+          ) : dashboardError || !dashboard ? (
+            <div className="py-8 text-center text-red-500 text-sm">
+              Unable to load analytics data.
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Stat Cards */}
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <DashboardStatCard
+                  title="Stories"
+                  value={dashboard.totalPosts}
+                  icon={<PenLine size={18} />}
+                />
+                <DashboardStatCard
+                  title="Reads"
+                  value={dashboard.totalViews}
+                  icon={<Eye size={18} />}
+                />
+                <DashboardStatCard
+                  title="Likes"
+                  value={dashboard.totalLikes}
+                  icon={<Heart size={18} />}
+                />
+                <DashboardStatCard
+                  title="Comments"
+                  value={dashboard.totalComments}
+                  icon={<MessageSquare size={18} />}
+                />
+              </div>
+
+              {/* Category Chart */}
+              <div className="space-y-4">
+                <H2 className="text-lg">Category Distribution</H2>
+                <CategoryChart
+                  data={Object.entries(dashboard.categories).map(([name, value]) => ({
+                    name: categoryLabels[name as Category] ?? name,
+                    value,
+                  }))}
+                />
+              </div>
+
+              {/* Top Story Card */}
+              <div className="space-y-4">
+                <H2 className="text-lg">Top Story Highlight</H2>
+                <TopStoryCard post={dashboard.mostViewedPost} />
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="mt-14 border-t border-border pt-8">
-          <h2 className="font-serif text-2xl font-semibold">
+          <H2>
             Your stories
-          </h2>
+          </H2>
 
           {posts.length === 0 ? (
             <div className="py-14 text-center">
@@ -242,12 +280,11 @@ export default function ProfilePage() {
                 You haven't written a story yet.
               </p>
 
-              <Link
-                to="/create"
-                className="btn-primary mt-5 inline-block rounded-full px-6 py-3 text-sm font-medium"
-              >
-                Write your first story
-              </Link>
+              <Button asChild className="mt-5">
+                <Link to="/create">
+                  Write your first story
+                </Link>
+              </Button>
             </div>
           ) : (
             posts.map((post) => (
@@ -334,28 +371,6 @@ function Highlight({
 
       <p className="leading-6">
         {text}
-      </p>
-    </div>
-  );
-}
-
-interface StatCardProps {
-  label: string;
-  value: number;
-}
-
-function StatCard({
-  label,
-  value,
-}: StatCardProps) {
-  return (
-    <div className="rounded-2xl border border-border bg-surface p-5">
-      <p className="text-2xl font-semibold">
-        {value.toLocaleString()}
-      </p>
-
-      <p className="mt-2 text-sm text-muted">
-        {label}
       </p>
     </div>
   );

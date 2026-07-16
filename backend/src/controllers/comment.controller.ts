@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { CommentModel } from "../models/Comment.js";
 import { PostModel } from "../models/Post.js";
 import { createCommentSchema } from "../schemas/comment.schema.js";
+import { incrementComment } from "../services/postCounter.service.js";
 
 export const getComments = async (
   req: Request,
@@ -108,6 +109,8 @@ export const createComment = async (
       authorId: req.userId,
       body: result.data.body,
     });
+
+    await incrementComment(postId);
 
     await comment.populate(
       "authorId",

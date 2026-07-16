@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import { useAuth } from "../context/AuthContext";
+import { Button, H1, Text, Field, Input } from "../components/ui";
 
 export default function SignupPage() {
   const { signup } = useAuth();
@@ -47,24 +48,20 @@ export default function SignupPage() {
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md items-center px-5 py-12">
       <div className="w-full">
-        <h1 className="font-serif text-4xl font-medium">
+        <H1>
           Join Akhyan.
-        </h1>
+        </H1>
 
-        <p className="mt-3 text-muted">
+        <Text className="mt-3 text-muted">
           Stories worth telling. A place to share yours.
-        </p>
+        </Text>
 
         <form
           onSubmit={handleSubmit}
           className="mt-10 space-y-5"
         >
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Username
-            </label>
-
-            <input
+          <Field label="Username" required>
+            <Input
               value={username}
               onChange={(event) =>
                 setUsername(event.target.value)
@@ -72,32 +69,22 @@ export default function SignupPage() {
               required
               minLength={3}
               maxLength={30}
-              className="w-full rounded-lg border border-border bg-surface px-4 py-3 outline-none focus:border-accent"
             />
-          </div>
+          </Field>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Email
-            </label>
-
-            <input
+          <Field label="Email" required>
+            <Input
               type="email"
               value={email}
               onChange={(event) =>
                 setEmail(event.target.value)
               }
               required
-              className="w-full rounded-lg border border-border bg-surface px-4 py-3 outline-none focus:border-accent"
             />
-          </div>
+          </Field>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Password
-            </label>
-
-            <input
+          <Field label="Password" required helperText="At least 8 characters.">
+            <Input
               type="password"
               value={password}
               onChange={(event) =>
@@ -106,29 +93,22 @@ export default function SignupPage() {
               required
               minLength={8}
               maxLength={72}
-              className="w-full rounded-lg border border-border bg-surface px-4 py-3 outline-none focus:border-accent"
             />
-
-            <p className="mt-2 text-xs text-muted">
-              At least 8 characters.
-            </p>
-          </div>
+          </Field>
 
           {error && (
-            <p className="text-sm text-red-600">
+            <p className="text-sm font-medium text-red-500">
               {error}
             </p>
           )}
 
-          <button
+          <Button
             type="submit"
-            disabled={submitting}
-            className="w-full rounded-full btn-primary py-3 font-medium"
+            loading={submitting}
+            className="w-full"
           >
-            {submitting
-              ? "Creating account..."
-              : "Create account"}
-          </button>
+            Create account
+          </Button>
         </form>
 
         <p className="mt-8 text-center text-sm text-muted">

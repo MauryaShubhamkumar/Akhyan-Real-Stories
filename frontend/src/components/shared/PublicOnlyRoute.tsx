@@ -1,15 +1,13 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
 interface Props {
   children: ReactNode;
 }
 
-export default function PublicOnlyRoute({
-  children,
-}: Props) {
+export default function PublicOnlyRoute({ children }: Props) {
   const { user, loading } = useAuth();
 
   if (loading) {

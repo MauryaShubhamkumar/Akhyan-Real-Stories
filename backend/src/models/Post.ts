@@ -36,6 +36,18 @@ const postSchema = new Schema(
       required: true,
       index: true,
     },
+    likeCount: {
+      type: Number,
+      default: 0,
+    },
+    dislikeCount: {
+      type: Number,
+      default: 0,
+    },
+    commentCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
@@ -44,6 +56,10 @@ const postSchema = new Schema(
 
 postSchema.index({ createdAt: -1 });
 postSchema.index({ category: 1, createdAt: -1 });
+postSchema.index({
+  title: "text",
+  body: "text",
+});
 
 export type Post = InferSchemaType<typeof postSchema>;
 

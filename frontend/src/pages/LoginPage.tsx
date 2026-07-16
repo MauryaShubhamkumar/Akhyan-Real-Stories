@@ -7,6 +7,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import { useAuth } from "../context/AuthContext";
+import { Button, H1, Text, Field, Input } from "../components/ui";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -46,65 +47,53 @@ export default function LoginPage() {
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md items-center px-5 py-12">
       <div className="w-full">
-        <h1 className="font-serif text-4xl font-medium">
+        <H1>
           Welcome back.
-        </h1>
+        </H1>
 
-        <p className="mt-3 text-muted">
+        <Text className="mt-3 text-muted">
           Continue reading and sharing stories on Akhyan.
-        </p>
+        </Text>
 
         <form
           onSubmit={handleSubmit}
           className="mt-10 space-y-5"
         >
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Email
-            </label>
-
-            <input
+          <Field label="Email" required>
+            <Input
               type="email"
               value={email}
               onChange={(event) =>
                 setEmail(event.target.value)
               }
               required
-              className="w-full rounded-lg border border-border bg-surface px-4 py-3 outline-none transition focus:border-accent"
             />
-          </div>
+          </Field>
 
-          <div>
-            <label className="mb-2 block text-sm font-medium">
-              Password
-            </label>
-
-            <input
+          <Field label="Password" required>
+            <Input
               type="password"
               value={password}
               onChange={(event) =>
                 setPassword(event.target.value)
               }
               required
-              className="w-full rounded-lg border border-border bg-surface px-4 py-3 outline-none transition focus:border-accent"
             />
-          </div>
+          </Field>
 
           {error && (
-            <p className="text-sm text-red-600">
+            <p className="text-sm font-medium text-red-500">
               {error}
             </p>
           )}
 
-          <button
+          <Button
             type="submit"
-            disabled={submitting}
-            className="w-full rounded-full btn-primary py-3 font-medium"
+            loading={submitting}
+            className="w-full"
           >
-            {submitting
-              ? "Signing in..."
-              : "Sign in"}
-          </button>
+            Sign in
+          </Button>
         </form>
 
         <p className="mt-8 text-center text-sm text-muted">

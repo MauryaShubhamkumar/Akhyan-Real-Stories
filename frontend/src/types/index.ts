@@ -30,7 +30,10 @@ export interface Post {
   isAnonymous: boolean;
   author: Author | null;
   counts: ReactionCounts;
+  views: number;
+  readingTime: number;
   createdAt: string;
+  commentCount: number;
 }
 
 export interface Comment {

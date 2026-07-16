@@ -1,12 +1,10 @@
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useSearchParams } from "react-router-dom";
 
-import axios from "axios";
-
-import { api } from "../api/client";
-import PostCard from "../components/PostCard";
+import { usePosts } from "../features/posts/hooks";
+import StoryCard from "../components/story/StoryCard";
+import StoryCardSkeleton from "../components/story/StoryCardSkeleton";
+import StorySortTabs from "../components/story/StorySortTabs";
+import { Button, H1, Text } from "../components/ui";
 
 import {
   categories,
@@ -14,105 +12,93 @@ import {
 
 import type {
   Category,
-  Pagination,
-  Post,
 } from "../types";
 
 export default function HomePage() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [category, setCategory] = useState<
-    Category | ""
-  >("");
+  const category = (searchParams.get("category") as Category | null) ?? "";
+  const page = Number(searchParams.get("page") ?? "1");
+  const sort = searchParams.get("sort") ?? "new";
+  const q = searchParams.get("q") ?? "";
 
-  const [page, setPage] = useState(1);
+  const { data, isLoading, error } = usePosts(page, category, sort, q);
 
-  const [pagination, setPagination] =
-    useState<Pagination | null>(null);
+  const updateParams = (newParams: Record<string, string | number | undefined>) => {
+    const nextParams = new URLSearchParams(searchParams);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    const getPosts = async () => {
-      setLoading(true);
-      setError("");
-
-      try {
-        const response = await api.get("/posts", {
-          params: {
-            page,
-            ...(category && { category }),
-          },
-        });
-
-        setPosts(response.data.posts);
-        setPagination(response.data.pagination);
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          setError(
-            error.response?.data?.message ??
-              "Unable to load stories"
-          );
-        } else {
-          setError("Unable to load stories");
-        }
-      } finally {
-        setLoading(false);
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === undefined || value === "") {
+        nextParams.delete(key);
+      } else {
+        nextParams.set(key, String(value));
       }
-    };
+    });
 
-    void getPosts();
-  }, [page, category]);
-
-  const handleCategoryChange = (
-    value: Category | ""
-  ) => {
-    setCategory(value);
-    setPage(1);
+    setSearchParams(nextParams);
   };
+
+  const handleCategoryChange = (value: Category | "") => {
+    updateParams({
+      category: value,
+      page: 1,
+    });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    updateParams({
+      page: newPage,
+    });
+  };
+
+  const posts = data?.posts ?? [];
+  const pagination = data?.pagination ?? null;
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-12">
       <section>
-        <h1 className="font-serif text-4xl font-medium leading-tight md:text-5xl">
+        <H1>
           Real stories from real people.
-        </h1>
+        </H1>
 
-        <p className="mt-4 max-w-xl text-lg leading-7 text-muted">
+        <Text className="max-w-xl mt-4 text-muted">
           A quiet place for the things we don't usually say out loud.
-        </p>
+        </Text>
       </section>
 
-      <div className="mt-10 flex gap-2 overflow-x-auto border-b border-border pb-4">
-        {categories.map((item) => (
-          <button
-            key={item.label}
-            onClick={() =>
-              handleCategoryChange(item.value)
-            }
-            className={`shrink-0 rounded-full px-4 py-2 text-sm transition ${
-              category === item.value
-                ? "btn-primary"
-                : "text-muted hover:bg-border/60 hover:text-ink"
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
+        <div className="flex gap-2 overflow-x-auto">
+          {categories.map((item) => (
+            <Button
+              key={item.label}
+              onClick={() =>
+                handleCategoryChange(item.value)
+              }
+              variant={category === item.value ? "primary" : "ghost"}
+              size="sm"
+              className={category === item.value ? "" : "text-muted hover:text-ink"}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </div>
+
+        <StorySortTabs />
       </div>
 
-      {loading ? (
-        <div className="py-16 text-center text-muted">
-          Loading stories...
+      {isLoading ? (
+        <div className="space-y-6 py-6 animate-fade-in">
+          <StoryCardSkeleton />
+          <StoryCardSkeleton />
+          <StoryCardSkeleton />
         </div>
       ) : error ? (
         <div className="py-16 text-center text-red-600">
-          {error}
+          {error instanceof Error ? error.message : "Unable to load stories"}
         </div>
       ) : posts.length === 0 ? (
         <div className="py-16 text-center">
-          <p className="font-serif text-2xl">
+          <p className="font-serif text-2xl text-ink">
             No stories yet.
           </p>
 
@@ -121,9 +107,9 @@ export default function HomePage() {
           </p>
         </div>
       ) : (
-        <div>
+        <div className="divide-y divide-border/60">
           {posts.map((post) => (
-            <PostCard
+            <StoryCard
               key={post.id}
               post={post}
             />
@@ -131,37 +117,33 @@ export default function HomePage() {
         </div>
       )}
 
-      {!loading &&
+      {!isLoading &&
         pagination &&
         pagination.totalPages > 1 && (
           <div className="flex items-center justify-between py-10">
-            <button
-              onClick={() =>
-                setPage((current) =>
-                  Math.max(1, current - 1)
-                )
-              }
+            <Button
+              onClick={() => handlePageChange(Math.max(1, page - 1))}
               disabled={page === 1}
-              className="rounded-full border border-border px-5 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+              variant="outline"
+              size="sm"
             >
               Previous
-            </button>
+            </Button>
 
             <span className="text-sm text-muted">
               Page {page} of {pagination.totalPages}
             </span>
 
-            <button
-              onClick={() =>
-                setPage((current) => current + 1)
-              }
+            <Button
+              onClick={() => handlePageChange(page + 1)}
               disabled={
                 page === pagination.totalPages
               }
-              className="rounded-full border border-border px-5 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
+              variant="outline"
+              size="sm"
             >
               Next
-            </button>
+            </Button>
           </div>
         )}
     </main>
