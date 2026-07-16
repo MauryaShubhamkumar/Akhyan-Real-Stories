@@ -6,9 +6,7 @@ Akhyan is a reading-first, distraction-free platform for writing and reading rea
 
 ---
 
-## 🚀 Live Demo
-
-👉 :contentReference[oaicite:0]{index=0}
+🌐 **Live Demo** → [https://akhyan-real-stories.vercel.app](https://akhyan-real-stories.vercel.app)
 
 ---
 ## ✨ Features
