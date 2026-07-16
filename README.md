@@ -6,6 +6,11 @@ Akhyan is a reading-first, distraction-free platform for writing and reading rea
 
 ---
 
+## 🚀 Live Demo
+
+👉 :contentReference[oaicite:0]{index=0}
+
+---
 ## ✨ Features
 
 - **🔐 Robust Authentication**: Secure password hashing via `bcrypt` and HTTP-only cookie-based JWT sessions.
