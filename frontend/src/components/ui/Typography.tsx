@@ -24,7 +24,7 @@ export function H1({
   return (
     <h1
       className={cn(
-        "font-serif text-5xl font-semibold tracking-tight text-ink",
+        "font-display text-5xl font-bold tracking-tight text-ink leading-[1.15]",
         className
       )}
       {...props}
@@ -42,7 +42,7 @@ export function H2({
   return (
     <h2
       className={cn(
-        "font-serif text-3xl font-semibold tracking-tight text-ink",
+        "font-display text-3xl font-semibold tracking-tight text-ink leading-[1.25]",
         className
       )}
       {...props}
@@ -60,7 +60,7 @@ export function H3({
   return (
     <h3
       className={cn(
-        "font-serif text-2xl font-semibold text-ink",
+        "font-display text-2xl font-semibold text-ink leading-[1.3]",
         className
       )}
       {...props}

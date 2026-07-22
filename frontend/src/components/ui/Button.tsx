@@ -33,27 +33,25 @@ interface ButtonProps
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-accent text-white hover:opacity-90",
+    "btn-primary text-white",
 
   secondary:
-    "border border-border bg-surface text-ink hover:bg-border",
+    "btn-secondary",
 
   outline:
-    "border border-border bg-transparent text-ink hover:bg-surface",
+    "border border-border bg-transparent text-ink hover:bg-surface hover:border-accent/40 transition-colors duration-200",
 
   ghost:
-    "bg-transparent text-ink hover:bg-surface",
+    "bg-transparent text-ink hover:bg-surface transition-colors duration-200",
 
   danger:
-    "bg-red-600 text-white hover:bg-red-700",
+    "bg-red-600 text-white hover:bg-red-700 shadow-sm transition-colors duration-200",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm",
-
+  sm: "h-9 px-4 text-sm",
   md: "h-11 px-5 text-sm",
-
-  lg: "h-12 px-6 text-base",
+  lg: "h-12 px-7 text-base",
 };
 
 const Button = forwardRef<
@@ -82,7 +80,7 @@ const Button = forwardRef<
         ref={ref}
         disabled={!asChild ? disabled || loading : undefined}
         className={cn(
-          "inline-flex select-none items-center justify-center gap-2 rounded-full font-medium transition-all duration-200 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+          "inline-flex select-none items-center justify-center gap-2 rounded-full font-medium transition-all duration-200 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
           variants[variant],
           sizes[size],
           className
@@ -91,7 +89,7 @@ const Button = forwardRef<
       >
         {loading ? (
           <Loader2
-            size={18}
+            size={17}
             className="animate-spin"
           />
         ) : (

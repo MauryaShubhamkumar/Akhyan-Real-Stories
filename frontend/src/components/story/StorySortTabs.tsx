@@ -1,5 +1,11 @@
 import { useSearchParams } from "react-router-dom";
-import { Button } from "../ui";
+import { Flame, Star, Sparkles } from "lucide-react";
+
+const sortOptions = [
+  { value: "new", label: "New", icon: Sparkles },
+  { value: "top", label: "Top", icon: Star },
+  { value: "trending", label: "Trending", icon: Flame },
+] as const;
 
 export default function StorySortTabs() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -8,36 +14,29 @@ export default function StorySortTabs() {
   const handleSortChange = (sortValue: string) => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("sort", sortValue);
-    nextParams.delete("page"); // Reset page when sorting changes
+    nextParams.delete("page");
     setSearchParams(nextParams);
   };
 
   return (
-    <div className="flex items-center gap-1.5 border border-border bg-surface p-1 rounded-full">
-      <Button
-        onClick={() => handleSortChange("new")}
-        variant={currentSort === "new" ? "secondary" : "ghost"}
-        size="sm"
-        className="h-8 rounded-full text-xs font-medium"
-      >
-        New
-      </Button>
-      <Button
-        onClick={() => handleSortChange("top")}
-        variant={currentSort === "top" ? "secondary" : "ghost"}
-        size="sm"
-        className="h-8 rounded-full text-xs font-medium"
-      >
-        Top
-      </Button>
-      <Button
-        onClick={() => handleSortChange("trending")}
-        variant={currentSort === "trending" ? "secondary" : "ghost"}
-        size="sm"
-        className="h-8 rounded-full text-xs font-medium"
-      >
-        Trending
-      </Button>
+    <div
+      className="flex items-center gap-0.5 p-1 rounded-full border border-border/70"
+      style={{ background: "var(--surface)" }}
+    >
+      {sortOptions.map(({ value, label, icon: Icon }) => (
+        <button
+          key={value}
+          onClick={() => handleSortChange(value)}
+          className={`flex items-center gap-1.5 h-8 px-4 rounded-full text-xs font-semibold transition-all duration-200 ${
+            currentSort === value
+              ? "bg-accent text-white shadow-warm-sm"
+              : "text-muted hover:text-ink hover:bg-surface-alt"
+          }`}
+        >
+          <Icon size={11} />
+          {label}
+        </button>
+      ))}
     </div>
   );
 }

@@ -1,28 +1,27 @@
-# 📖 Akhyan (आख्यान)
+# Akhyan (आख्यान)
 
 > **Stories worth telling.** A quiet place for the things we don't usually say out loud.
 
 Akhyan is a reading-first, distraction-free platform for writing and reading real personal stories, memories, struggles, love stories, and life experiences. It is built to enable deep, comfortable reading with neutral tone-based light and dark themes. Users can write under their own username or post completely anonymously.
 
----
-
-🌐 **Live Demo** → [https://akhyan-real-stories.vercel.app](https://akhyan-real-stories.vercel.app)
+Live Demo: [https://akhyan-real-stories.vercel.app](https://akhyan-real-stories.vercel.app)
 
 ---
+
 ## ✨ Features
 
-- **🔐 Robust Authentication**: Secure password hashing via `bcrypt` and HTTP-only cookie-based JWT sessions.
-- **👁️ Privacy First**: Publish stories anonymously while retaining management and deletion controls.
-- **📊 Story Analytics**: Personal dashboard highlighting total story count, unique content views, and metrics broken down by category.
-- **🏷️ Feed Filtering**: Categories feed including Struggles, Love Stories, School Life, College Life, and General.
-- **💬 Community Interaction**: Commenting systems, and support for active Like / Dislike reactions.
-- **🛡️ Content Moderation**: Integrated system for reporting inappropriate posts and comments.
-- **🔗 Quick Share**: Integrated native Web Share API, direct WhatsApp sharing, and instant link copying.
-- **🌓 Adaptive Interface**: Sleek dark and light modes styled with Vanilla CSS transitions.
+- **Robust Authentication**: Secure password hashing via `bcrypt` and HTTP-only cookie-based JWT sessions.
+- **Privacy First**: Publish stories anonymously while retaining management and deletion controls.
+- **Story Analytics**: Personal dashboard highlighting total story count, unique content views, and metrics broken down by category.
+- **Feed Filtering**: Categories feed including Struggles, Love Stories, School Life, College Life, and General.
+- **Community Interaction**: Commenting systems, and support for active Like / Dislike reactions.
+- **Content Moderation**: Integrated system for reporting inappropriate posts and comments.
+- **Quick Share**: Integrated native Web Share API, direct WhatsApp sharing, and instant link copying.
+- **Adaptive Interface**: Sleek dark and light modes styled with custom CSS properties.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Frontend | Backend |
 | :--- | :--- |
@@ -34,7 +33,7 @@ Akhyan is a reading-first, distraction-free platform for writing and reading rea
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 akhyan/
@@ -62,7 +61,7 @@ akhyan/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -115,7 +114,7 @@ Visit [http://localhost:5173](http://localhost:5173) in your browser!
 
 ---
 
-## ⚙️ Building for Production
+## Building for Production
 
 ### Compile Backend TypeScript
 

@@ -1,4 +1,4 @@
-import { Clock3, CalendarDays } from "lucide-react";
+import { Clock3 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { Category } from "../../../types";
 import StoryCategoryBadge from "../StoryCategoryBadge";
@@ -14,25 +14,24 @@ export default function StoryMeta({
   readingTime,
   createdAt,
 }: Props) {
-  const relativeDate = formatDistanceToNow(new Date(createdAt), { addSuffix: true });
+  const relativeDate = formatDistanceToNow(new Date(createdAt), {
+    addSuffix: true,
+  });
 
   return (
-    <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+    <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
       <StoryCategoryBadge category={category} />
 
-      <span>•</span>
+      <span className="text-border">·</span>
 
-      <span className="flex items-center gap-1">
-        <Clock3 size={14} />
+      <span className="flex items-center gap-1 font-medium">
+        <Clock3 size={12} />
         {readingTime} min read
       </span>
 
-      <span>•</span>
+      <span className="text-border">·</span>
 
-      <span className="flex items-center gap-1">
-        <CalendarDays size={14} />
-        {relativeDate}
-      </span>
+      <span>{relativeDate}</span>
     </div>
   );
 }
