@@ -15,8 +15,6 @@ import { calculateReadingTime } from "../utils/readingTime.js";
 import { buildPostFilter } from "../services/post.service.js";
 import { getSort, trendingScore } from "../utils/postSort.js";
 
-const PAGE_LIMIT = 10;
-
 export const createPost = async (
   req: Request,
   res: Response
